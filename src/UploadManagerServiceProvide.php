@@ -22,7 +22,7 @@ class UploadManagerServiceProvide extends ServiceProvider
     {
         // TODO: Implement register() method.
         $this->app->singleton('zgldh\UploadManager\UploadStrategyInterface', \Config::get('upload.upload_strategy'));
-        $this->app->singleton('upload-manager', 'zgldh\UploadManager\UploadManager');
+        $this->app->singleton('upload-manager', zgldh\UploadManager\UploadManager::class);
 
     }
 

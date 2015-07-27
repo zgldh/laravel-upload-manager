@@ -10,4 +10,6 @@
 
 interface UploadStrategyInterface
 {
+    public function makeFileName($file);
+    public function makeStorePath($filename);
 }

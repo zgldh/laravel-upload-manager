@@ -2,6 +2,15 @@
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Class Upload
+ * @property string $name
+ * @property string $description
+ * @property string $disk
+ * @property string $path
+ * @property string $size
+ * @property string $user_id
+ */
 class Upload extends Model
 {
     protected $table = 'uploads';

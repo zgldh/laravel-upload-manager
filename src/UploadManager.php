@@ -1,5 +1,6 @@
 <?php namespace zgldh\UploadManager;
 
+use App\Upload;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
@@ -10,6 +11,16 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
  */
 class UploadManager
 {
+    /**
+     * @var UploadStrategyInterface
+     */
+    private $strategy = null;
+
+    public function __construct()
+    {
+        $this->strategy = self::getStrategy();
+    }
+
     /**
      * @return UploadManager
      */
@@ -26,30 +37,83 @@ class UploadManager
         return \App::make('zgldh\UploadManager\UploadStrategyInterface');
     }
 
-    public function upload(UploadedFile $file)
+    /**
+     * @param UploadedFile $file
+     * @param null $preCallback
+     * @return Upload|bool
+     */
+    public function upload(UploadedFile $file, $preCallback = null)
     {
         if (is_string($file)) {
-            return $this->uploadByUrl($file);
+            return $this->uploadByUrl($file, $preCallback);
         }
 
-        $info = false;
+        $upload = new Upload();
+        $upload->disk = \Config::get('upload.base_storage_disk');
         try {
-            $new_name = date('Y-m-d-') . md5(md5_file($file->getRealPath()) . time()) . '.' . $file->getClientOriginalExtension();
-            $path = 'i/' . $new_name;
-            $disk = \Storage::disk(self::DEFAULT_STORAGE_DISK);
-            $disk->put($path, file_get_contents($file->getPathname()));
-            $info = $this->getImageInfo($disk, $path);
-            $info['path'] = $path;
-            $info['size'] = $file->getSize();
+            $new_name = $this->strategy->makeFileName($file);
+            $path = $this->strategy->makeStorePath($new_name);
+
+            if (is_callable($preCallback)) {
+                $upload = $preCallback($upload);
+            }
+
+            if (!$upload) {
+                return false;
+            }
+
+            $upload->path = $path;
+            $upload->size = $file->getSize();
+
+            $disk = \Storage::disk($upload->disk);
+            if ($disk->put($path, file_get_contents($file->getPathname())) == false) {
+                return false;
+            }
+
         } catch (\Exception $e) {
             \Log::error($e);
+            return false;
         }
 
-        return $info;
+        return $upload;
     }
 
-    public function uploadByUrl($url)
+    /**
+     * @param $url
+     * @param null $preCallback
+     * @return Upload|bool
+     */
+    public function uploadByUrl($url, $preCallback = null)
     {
+        $upload = new Upload();
+        $upload->disk = \Config::get('upload.base_storage_disk');
+        try {
+            $new_name = $this->strategy->makeFileName($url);
+            $path = $this->strategy->makeStorePath($new_name);
 
+            if (is_callable($preCallback)) {
+                $upload = $preCallback($upload);
+            }
+
+            if (!$upload) {
+                return false;
+            }
+
+            $content = file_get_contents($url);
+
+            $upload->path = $path;
+            $upload->size = strlen($content);
+
+            $disk = \Storage::disk($upload->disk);
+            if ($disk->put($path, $content) == false) {
+                return false;
+            }
+
+        } catch (\Exception $e) {
+            \Log::error($e);
+            return false;
+        }
+
+        return $upload;
     }
 }

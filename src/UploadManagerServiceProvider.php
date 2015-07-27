@@ -20,10 +20,12 @@ class UploadManagerServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        // TODO: Implement register() method.
         $this->app->singleton('zgldh\UploadManager\UploadStrategyInterface', \Config::get('upload.upload_strategy'));
         $this->app->singleton('upload-manager', 'zgldh\UploadManager\UploadManager');
 
+        $this->mergeConfigFrom(
+            __DIR__ . '/../config/upload.php', 'upload'
+        );
     }
 
     public function boot()
@@ -31,7 +33,7 @@ class UploadManagerServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__ . '/../config/upload.php'    => config_path('upload.php'),
             __DIR__ . '/../database/migrations/' => database_path('/migrations'),
-            __DIR__ . '/../modal/Upload.php'     => app_path('Upload.php')
+            __DIR__ . '/../model/Upload.php'     => app_path('Upload.php')
         ]);
     }
 }
