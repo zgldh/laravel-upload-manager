@@ -38,59 +38,29 @@ class UploadManager
         return \App::make('zgldh\UploadManager\UploadStrategyInterface');
     }
 
-    /**
-     * @param UploadedFile $file
-     * @param null $preCallback
-     * @return Upload|bool
-     */
-    public function upload(UploadedFile $file, $preCallback = null)
+    public function getUploadUrl($disk, $path)
     {
-        if (is_string($file)) {
-            return $this->uploadByUrl($file, $preCallback);
+        $url = '';
+        $methodName = 'get' . Str::camel($disk) . 'Url';
+        if (method_exists($this->strategy, $methodName)) {
+            $url = $this->strategy->$methodName($path);
         }
-
-        $upload = new Upload();
-        $upload->disk = \Config::get('upload.base_storage_disk');
-        try {
-            $new_name = $this->strategy->makeFileName($file);
-            $path = $this->strategy->makeStorePath($new_name);
-
-            if (is_callable($preCallback)) {
-                $upload = $preCallback($upload);
-            }
-
-            if (!$upload) {
-                return false;
-            }
-
-            $upload->path = $path;
-            $upload->size = $file->getSize();
-
-            $disk = \Storage::disk($upload->disk);
-            if ($disk->put($path, file_get_contents($file->getPathname())) == false) {
-                return false;
-            }
-
-        } catch (\Exception $e) {
-            \Log::error($e);
-            return false;
-        }
-
-        return $upload;
+        return $url;
     }
 
+
     /**
-     * @param $url
-     * @param null $preCallback
-     * @return Upload|bool
+     * @param $upload
+     * @param $uploadedFilePath
+     * @param $file
+     * @param $preCallback
+     * @return bool
      */
-    public function uploadByUrl($url, $preCallback = null)
+    private function coreUpload($upload, $uploadedFilePath, $file, $preCallback)
     {
-        $upload = new Upload();
-        $upload->disk = \Config::get('upload.base_storage_disk');
         try {
-            $new_name = $this->strategy->makeFileName($url);
-            $path = $this->strategy->makeStorePath($new_name);
+            $newName = $this->strategy->makeFileName($file);
+            $path = $this->strategy->makeStorePath($newName);
 
             if (is_callable($preCallback)) {
                 $upload = $preCallback($upload);
@@ -100,7 +70,7 @@ class UploadManager
                 return false;
             }
 
-            $content = file_get_contents($url);
+            $content = file_get_contents($uploadedFilePath);
 
             $upload->path = $path;
             $upload->size = strlen($content);
@@ -114,17 +84,108 @@ class UploadManager
             \Log::error($e);
             return false;
         }
+        return $upload;
+    }
+
+    /**
+     * 保存上传文件，生成上传对象
+     * @param UploadedFile $file
+     * @param null $preCallback
+     * @return Upload|bool
+     */
+    public function upload(UploadedFile $file, $preCallback = null)
+    {
+        if (is_string($file)) {
+            return $this->uploadByUrl($file, $preCallback);
+        }
+
+        $upload = new Upload();
+        $upload->disk = \Config::get('upload.base_storage_disk');
+
+        $uploadedFilePath = $file->getPathname();
+        $upload = $this->coreUpload($upload, $uploadedFilePath, $file, $preCallback);
 
         return $upload;
     }
 
-    public function getUploadUrl($disk, $path)
+    /**
+     * 从URL获取文件并保存，生成上传对象
+     * @param $url
+     * @param null $preCallback
+     * @return Upload|bool
+     */
+    public function uploadByUrl($url, $preCallback = null)
     {
-        $url = '';
-        $methodName = 'get' . ucfirst($disk) . 'Url';
-        if (method_exists($this->strategy, $methodName)) {
-            $url = $this->strategy->$methodName($path);
+        $upload = new Upload();
+        $upload->disk = \Config::get('upload.base_storage_disk');
+
+        $uploadedFilePath = $url;
+        $upload = $this->coreUpload($upload, $uploadedFilePath, $url, $preCallback);
+
+        return $upload;
+    }
+
+    /**
+     * 用已上传文件更新一个上传对象
+     * @param $upload
+     * @param UploadedFile $file
+     * @param null $preCallback
+     * @return bool
+     */
+    public function update(&$upload, UploadedFile $file, $preCallback = null)
+    {
+        if (is_string($file)) {
+            return $this->updateByUrl($upload, $file, $preCallback);
         }
-        return $url;
+        $oldDisk = $upload->disk;
+        $oldPath = $upload->path;
+
+        $uploadedFilePath = $file->getPathname();
+        $result = $this->coreUpload($upload, $uploadedFilePath, $file, $preCallback);
+        if ($result) {
+            $this->removeOldFile($oldDisk, $oldPath);
+            $upload = $result;
+        } else {
+            $upload->disk = $oldDisk;
+            $upload->path = $oldPath;
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * 用URL更新一个上传对象
+     * @param $upload
+     * @param $url
+     * @param null $preCallback
+     * @return bool
+     */
+    public function updateByUrl(&$upload, $url, $preCallback = null)
+    {
+        $oldDisk = $upload->disk;
+        $oldPath = $upload->path;
+
+        $uploadedFilePath = $url;
+        $result = $this->coreUpload($upload, $uploadedFilePath, $url, $preCallback);
+        if ($result) {
+            $this->removeOldFile($oldDisk, $oldPath);
+            $upload = $result;
+        } else {
+            $upload->disk = $oldDisk;
+            $upload->path = $oldPath;
+            return false;
+        }
+
+        return true;
+    }
+
+    private function removeOldFile($disk, $path)
+    {
+        if ($disk && $path) {
+            $disk = \Storage::disk($disk);
+            if ($disk) {
+                $disk->delete($path);
+            }
+        }
     }
 }
