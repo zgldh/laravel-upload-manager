@@ -1,21 +1,22 @@
 # laravel-upload-manager
+通过API对文件进行“上传、验证、储存、管理”操作。
 Upload, validate, storage, manage by API for Laravel 5.1
 
-## Requirement
+## 需求 Requirement
 
 1. Laravel 5.1
 
-## Install
+## 安装 Install
 
 1. composer require zgldh/laravel-upload-manager
 2. ```app.php```  ```'providers' => [ 'zgldh\UploadManager\UploadManagerServiceProvider']```
-3. php artisan vendor:publish --provider="zgldh/UploadManager/UploadManagerServiceProvider"
+3. php artisan vendor:publish --provider="zgldh\UploadManager\UploadManagerServiceProvider"
 4. php artisan migrate
 5. Done
 
-## Usage
+## 用法 Usage
 
-1. Upload and store a file.
+1. 上传一个文件 Upload and store a file.
     
     ```php
      
@@ -34,7 +35,7 @@ Upload, validate, storage, manage by API for Laravel 5.1
         }
     ```
  
-2. Fetch and store a file from a URL
+2. 从一个URL获取并保存文件 Fetch and store a file from a URL
     
     ```php
      
@@ -53,7 +54,7 @@ Upload, validate, storage, manage by API for Laravel 5.1
         }
     ```
  
-3. Update a upload object
+3. 更新一个上传对象 Update a upload object
     
     ```php
      
@@ -79,7 +80,7 @@ Upload, validate, storage, manage by API for Laravel 5.1
         }
     ```
  
-4. Update a upload object from a URL
+4. 用从一个URL获取到的文件来更新一个上传对象 Update a upload object from a URL
     
     ```php
      
@@ -104,3 +105,12 @@ Upload, validate, storage, manage by API for Laravel 5.1
             }
         }
     ```
+    
+## 配置 Configuration
+
+1. ``` config/upload.php ```
+2. ``` App\Upload ```
+3. ``` UploadStrategy.php ```
+
+待续
+    
