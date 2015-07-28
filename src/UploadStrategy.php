@@ -35,7 +35,7 @@ class UploadStrategy implements UploadStrategyInterface
      */
     public function makeStorePath($filename)
     {
-        $path = 'i/' . $filename;
+        $path = 'uploads/' . $filename;
         return $path;
     }
 }

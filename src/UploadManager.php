@@ -1,6 +1,7 @@
 <?php namespace zgldh\UploadManager;
 
 use App\Upload;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
@@ -115,5 +116,15 @@ class UploadManager
         }
 
         return $upload;
+    }
+
+    public function getUploadUrl($disk, $path)
+    {
+        $url = '';
+        $methodName = 'get' . Str::camel($disk) . 'Url';
+        if (method_exists($this->strategy, $methodName)) {
+            $url = $this->strategy->$methodName($path);
+        }
+        return $url;
     }
 }
