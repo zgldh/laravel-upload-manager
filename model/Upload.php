@@ -1,6 +1,7 @@
 <?php namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use zgldh\UploadManager\UploadManager;
 
 /**
  * Class Upload
@@ -10,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $path
  * @property string $size
  * @property string $user_id
+ * @package App
  */
 class Upload extends Model
 {
@@ -22,12 +24,9 @@ class Upload extends Model
 
     public function getUrlAttribute()
     {
-        if ($this->disk == 'qiniu') {
-            $disk = \Storage::disk($this->disk);
-            return $disk->getDriver()->downloadUrl($this->path);
-        } else {
-            return url('uploads/' . $this->path);
-        }
+        $manager = UploadManager::getInstance();
+        $url = $manager->getUploadUrl($this->disk, $this->path);
+        return $url;
     }
 
     public function deleteFile()
@@ -54,6 +53,7 @@ class Upload extends Model
         }
         $currentDisk = \Storage::disk($this->disk);
         $content = $currentDisk->get($this->path);
+
         $newDisk = \Storage::disk($newDiskName);
         $newDisk->put($this->path, $content);
         if ($newDisk->exists($this->path)) {
