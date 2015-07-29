@@ -59,6 +59,7 @@ class Upload extends Model
         if ($newDisk->exists($this->path)) {
             $this->disk = $newDiskName;
             $this->save();
+            $currentDisk->delete($this->path);
             return true;
         }
         return false;

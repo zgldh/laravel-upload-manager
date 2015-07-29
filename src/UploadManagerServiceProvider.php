@@ -35,5 +35,14 @@ class UploadManagerServiceProvider extends ServiceProvider
             __DIR__ . '/../database/migrations/' => database_path('/migrations'),
             __DIR__ . '/../model/Upload.php'     => app_path('Upload.php')
         ]);
+
+        
+        \App\Upload::deleted(
+            function ($upload)
+            {
+                //
+                $upload->deleteFile();
+            }
+        );
     }
 }
