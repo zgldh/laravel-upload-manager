@@ -48,7 +48,6 @@ class UploadManager
         return $url;
     }
 
-
     /**
      * @param $upload
      * @param $uploadedFilePath
@@ -89,11 +88,11 @@ class UploadManager
 
     /**
      * 保存上传文件，生成上传对象
-     * @param UploadedFile $file
+     * @param $file
      * @param null $preCallback
      * @return Upload|bool
      */
-    public function upload(UploadedFile $file, $preCallback = null)
+    public function upload($file, $preCallback = null)
     {
         if (is_string($file)) {
             return $this->uploadByUrl($file, $preCallback);
