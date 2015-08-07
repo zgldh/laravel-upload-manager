@@ -131,7 +131,7 @@ class UploadManager
      * @param null $preCallback
      * @return bool
      */
-    public function update(&$upload, UploadedFile $file, $preCallback = null)
+    public function update(&$upload, $file, $preCallback = null)
     {
         if (is_string($file)) {
             return $this->updateByUrl($upload, $file, $preCallback);
