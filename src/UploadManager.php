@@ -17,6 +17,13 @@ class UploadManager
      */
     private $strategy = null;
 
+    /**
+     * @var array zgldh\UploadManager\Validators\Base
+     */
+    private $validatorGroups = null;
+
+    private $errors = null;
+
     public function __construct()
     {
         $this->strategy = self::getStrategy();
@@ -38,6 +45,12 @@ class UploadManager
         return \App::make('zgldh\UploadManager\UploadStrategyInterface');
     }
 
+    /**
+     * 得到已上传文件的URL
+     * @param $disk
+     * @param $path
+     * @return string
+     */
     public function getUploadUrl($disk, $path)
     {
         $url = '';
@@ -49,10 +62,25 @@ class UploadManager
     }
 
     /**
-     * @param $upload
-     * @param $uploadedFilePath
-     * @param $file
-     * @param $preCallback
+     * 设置验证机制， 要在upload、update之前调用
+     * @param $validatorGroups 验证组的名字
+     * @return $this
+     */
+    public function withValidator($validatorGroups)
+    {
+        if (!is_array($validatorGroups)) {
+            $validatorGroups = [$validatorGroups];
+        }
+        $this->validatorGroups = $validatorGroups;
+        return $this;
+    }
+
+    /**
+     * 核心上传
+     * @param $upload           Upload object
+     * @param $uploadedFilePath string (path)
+     * @param $file             UploadedFile / string
+     * @param $preCallback      function
      * @return bool
      */
     private function coreUpload($upload, $uploadedFilePath, $file, $preCallback)
@@ -71,6 +99,8 @@ class UploadManager
 
             $content = file_get_contents($uploadedFilePath);
 
+            UploadValidator::validate($content, $this->validatorGroups);
+
             $upload->path = $path;
             $upload->size = strlen($content);
 
@@ -79,8 +109,8 @@ class UploadManager
                 return false;
             }
 
-        } catch (\Exception $e) {
-            \Log::error($e);
+        } catch (UploadException $e) {
+            $this->storeErrors($e);
             return false;
         }
         return $upload;
@@ -187,4 +217,34 @@ class UploadManager
             }
         }
     }
+
+    public function storeErrors(UploadException $e)
+    {
+        \Log::error($e);
+        $this->errors = $e->errors;
+        //TODO
+    }
+
+    /**
+     * @return null
+     */
+    public function getErrors()
+    {
+        return $this->errors;
+    }
+
+    /**
+     * 得到第一个错误信息
+     * @return mixed
+     */
+    public function getFirstErrorMessage()
+    {
+        if (isset($this->errors[0])) {
+            reset($this->errors);
+            $error = each($this->errors);
+            reset($this->errors);
+            return $error['value'];
+        }
+    }
+
 }

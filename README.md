@@ -106,11 +106,97 @@ Upload, validate, storage, manage by API for Laravel 5.1
         }
     ```
     
+5. 数据验证 Validation
+    
+    ```php
+    
+        use zgldh\UploadManager\UploadManager;
+        
+        class UploadController extend Controller
+        {
+            public function postUpload(Request $request)
+            {
+                $file = $request->file('avatar');
+                $uploadManager = UploadManager::getInstance();
+                $upload = $uploadManager->withValidator('image')->upload($file);    //加上验证组
+                
+                if($upload)
+                {
+                    $upload->save();
+                    return $upload;
+                }
+                else
+                {
+                    $errorMessages = $uploadManager->getErrors();                   //得到所有错误信息
+                    $errorMessage = $uploadManager->getFirstErrorMessage();         //得到第一条错误信息
+                    throw new \Exception($errorMessage);
+                }
+            }
+        }
+    ```
+    
 ## 配置 Configuration
 
 1. ``` config/upload.php ```
+
+    请查看源文件注释
+
 2. ``` App\Upload ```
+
+    可以在里面写自己喜欢的函数
+    
 3. ``` UploadStrategy.php ```
 
+    通常需要你亲自扩展一个出来。如：
+    
+    ```php
+        
+        <?php namespace App\Extensions;
+        
+        use zgldh\UploadManager\UploadStrategy as BaseUploadStrategy;
+        use zgldh\UploadManager\UploadStrategyInterface;
+        
+        class UploadStrategy extends BaseUploadStrategy implements UploadStrategyInterface
+        {
+        
+            /**
+             * 生成储存的相对路径
+             * @param $filename
+             * @return string
+             */
+            public function makeStorePath($filename)
+            {
+                $path = 'i/' . $filename;
+                return $path;
+            }
+        
+            /**
+             * 得到 disk localuploads 内上传的文件的URL
+             * @param $path
+             * @return string
+             */
+            public function getLocaluploadsUrl($path)
+            {
+                $url = url('uploads/' . $path);
+                return $url;
+            }
+        
+            /**
+             * 得到 disk qiniu 内上传的文件的URL
+             * @param $path
+             * @return string
+             */
+            public function getQiniuUrl($path)
+            {
+                $url = 'http://' . trim(\Config::get('filesystems.disks.qiniu.domain'), '/') . '/' . trim($path, '/');
+                return $url;
+            }
+        } 
+    ```
+    
+    然后在 ``` config/upload.php ``` 里面配置 ``` upload_strategy ``` 为你自己扩展的类即可。
+    
+    
 待续
+
     
