@@ -27,8 +27,8 @@ Upload, validate, storage, manage by API for Laravel 5.1
             public function postUpload(Request $request)
             {
                 $file = $request->file('avatar');
-                $uploadManager = UploadManager::getInstance();
-                $upload = $uploadManager->upload($file);
+                $manager = UploadManager::getInstance();
+                $upload = $manager->upload($file);
                 $upload->save();
                 return $upload;
             }
@@ -46,8 +46,8 @@ Upload, validate, storage, manage by API for Laravel 5.1
             public function postUpload(Request $request)
             {
                 $fileUrl = $request->input('url');
-                $uploadManager = UploadManager::getInstance();
-                $upload = $uploadManager->upload($fileUrl);
+                $manager = UploadManager::getInstance();
+                $upload = $manager->upload($fileUrl);
                 $upload->save();
                 return $upload;
             }
@@ -68,9 +68,9 @@ Upload, validate, storage, manage by API for Laravel 5.1
                 $uploadId = $request->input('id');
                 $file = $request->file('avatar');
                 
-                $uploadManager = UploadManager::getInstance();
+                $manager = UploadManager::getInstance();
                 $upload = Upload::find($uploadId);
-                if($uploadManager->upload($upload, $file))
+                if($manager->update($upload, $file))
                 {
                     $upload->save();
                     return $upload;
@@ -94,9 +94,9 @@ Upload, validate, storage, manage by API for Laravel 5.1
                 $uploadId = $request->input('id');
                 $fileUrl = $request->input('url');
                 
-                $uploadManager = UploadManager::getInstance();
+                $manager = UploadManager::getInstance();
                 $upload = Upload::find($uploadId);
-                if($uploadManager->upload($upload, $fileUrl))
+                if($manager->update($upload, $fileUrl))
                 {
                     $upload->save();
                     return $upload;
@@ -117,8 +117,8 @@ Upload, validate, storage, manage by API for Laravel 5.1
             public function postUpload(Request $request)
             {
                 $file = $request->file('avatar');
-                $uploadManager = UploadManager::getInstance();
-                $upload = $uploadManager->withValidator('image')->upload($file);    //加上验证组
+                $manager = UploadManager::getInstance();
+                $upload = $manager->withValidator('image')->upload($file);    //加上验证组
                 
                 if($upload)
                 {
@@ -127,8 +127,8 @@ Upload, validate, storage, manage by API for Laravel 5.1
                 }
                 else
                 {
-                    $errorMessages = $uploadManager->getErrors();                   //得到所有错误信息
-                    $errorMessage = $uploadManager->getFirstErrorMessage();         //得到第一条错误信息
+                    $errorMessages = $manager->getErrors();                   //得到所有错误信息
+                    $errorMessage = $manager->getFirstErrorMessage();         //得到第一条错误信息
                     throw new \Exception($errorMessage);
                 }
             }
