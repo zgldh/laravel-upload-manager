@@ -1,5 +1,8 @@
 <?php namespace zgldh\UploadManager;
 
+use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
+
 
 /**
  * Created by PhpStorm.
@@ -17,11 +20,14 @@ class UploadValidator
      */
     public static function validate($file, $validatorGroups)
     {
+        $tempFile = self::storeTempFile($file);
+
         $validators = self::mergeValidators($validatorGroups);
         $rules = self::makeRules($validators);
 
-        $data = ['upload' => $file];
+        $data = ['upload' => $tempFile];
         $rules = ['upload' => $rules];
+
         $messages = [
             'upload.min'     => trans('validation.min.file'),
             'upload.max'     => trans('validation.max.file'),
@@ -31,10 +37,12 @@ class UploadValidator
         $validator = \Validator::make($data, $rules, $messages);
 
         if ($validator->fails()) {
+            self::removeTempFile();
             $messages = $validator->errors();
             $errors = $messages->get('upload');
             throw new UploadException($errors);
         }
+        self::removeTempFile();
         return true;
     }
 
@@ -68,5 +76,32 @@ class UploadValidator
         }
         $rules = join('|', $rules);
         return $rules;
+    }
+
+    private static $tempFileName = null;
+
+    private static function getTempFileName($fileContent = null)
+    {
+        if (self::$tempFileName == null) {
+            self::$tempFileName = time() . md5($fileContent);
+        }
+        return self::$tempFileName;
+    }
+
+    private static function storeTempFile($fileContent)
+    {
+        $filename = self::getTempFileName($fileContent);
+        $filePath = storage_path('framework' . DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR . $filename);
+        file_put_contents($filePath, $fileContent);
+        $file = new File($filePath);
+        return $file;
+    }
+
+    private static function removeTempFile()
+    {
+        if (self::$tempFileName) {
+            $filePath = storage_path('framework' . DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR . self::$tempFileName);
+            unlink($filePath);
+        }
     }
 }
