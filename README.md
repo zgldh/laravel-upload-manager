@@ -2,7 +2,7 @@
 通过API对文件进行“上传、验证、储存、管理”操作。
 Upload, validate, storage, manage by API for Laravel 5.1
 
-## 需求 Requirement
+## 依赖 Requirement
 
 1. Laravel 5.1
 
