@@ -37,12 +37,13 @@ class UploadManagerServiceProvider extends ServiceProvider
         ]);
 
         
-        \App\Upload::deleted(
-            function ($upload)
-            {
-                //
-                $upload->deleteFile();
-            }
-        );
+        if (class_exists('\App\Upload')) {
+            \App\Upload::deleted(
+                function ($upload) {
+                    //
+                    $upload->deleteFile();
+                }
+            );
+        }
     }
 }
