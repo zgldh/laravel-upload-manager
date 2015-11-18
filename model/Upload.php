@@ -21,6 +21,11 @@ class Upload extends Model
     {
         return $this->belongsTo('App\User', 'user_id', 'id');
     }
+    
+    public function uploadable()
+    {
+        return $this->morphTo();
+    }
 
     public function getUrlAttribute()
     {

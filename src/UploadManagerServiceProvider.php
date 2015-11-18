@@ -37,8 +37,9 @@ class UploadManagerServiceProvider extends ServiceProvider
         ]);
 
         
-        if (class_exists('\App\Upload')) {
-            \App\Upload::deleted(
+        $modelClassName = config('upload.upload_model');
+        if (class_exists($modelClassName)) {
+            $modelClassName::deleted(
                 function ($upload) {
                     //
                     $upload->deleteFile();

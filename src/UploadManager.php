@@ -1,6 +1,5 @@
 <?php namespace zgldh\UploadManager;
 
-use App\Upload;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
@@ -116,6 +115,13 @@ class UploadManager
         return $upload;
     }
 
+    private function newUploadModel()
+    {
+        $modelClassName = config('upload.upload_model');
+        $model = app($modelClassName);
+        return $model;
+    }
+
     /**
      * 保存上传文件，生成上传对象
      * @param $file
@@ -128,7 +134,7 @@ class UploadManager
             return $this->uploadByUrl($file, $preCallback);
         }
 
-        $upload = new Upload();
+        $upload = $this->newUploadModel();
         $upload->disk = \Config::get('upload.base_storage_disk');
 
         $uploadedFilePath = $file->getPathname();
@@ -145,7 +151,7 @@ class UploadManager
      */
     public function uploadByUrl($url, $preCallback = null)
     {
-        $upload = new Upload();
+        $upload = $this->newUploadModel();
         $upload->disk = \Config::get('upload.base_storage_disk');
 
         $uploadedFilePath = $url;
