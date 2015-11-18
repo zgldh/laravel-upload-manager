@@ -9,7 +9,7 @@ Upload, validate, storage, manage by API for Laravel 5.1
 ## 安装 Install
 
 1. composer require zgldh/laravel-upload-manager
-2. ```app.php```  ```'providers' => [ 'zgldh\UploadManager\UploadManagerServiceProvider']```
+2. ```config/app.php```  ```'providers' => [ 'zgldh\UploadManager\UploadManagerServiceProvider']```
 3. php artisan vendor:publish --provider="zgldh\UploadManager\UploadManagerServiceProvider"
 4. php artisan migrate
 5. Done
