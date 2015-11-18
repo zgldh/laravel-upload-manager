@@ -34,14 +34,17 @@ class Upload extends Model
         return $url;
     }
 
-    public function deleteFile()
+    public function deleteFile($autoSave = true)
     {
         if ($this->path) {
             $disk = \Storage::disk($this->disk);
             if ($disk->exists($this->path)) {
                 $disk->delete($this->path);
                 $this->path = '';
-                $this->save();
+                if($autoSave)
+                {
+                    $this->save();
+                }
             }
         }
     }

@@ -42,7 +42,7 @@ class UploadManagerServiceProvider extends ServiceProvider
             $modelClassName::deleted(
                 function ($upload) {
                     //
-                    $upload->deleteFile();
+                    $upload->deleteFile(false);
                 }
             );
         }
