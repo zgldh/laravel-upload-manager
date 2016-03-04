@@ -31,10 +31,11 @@ class AddPolymorphicColumnsToUploads extends Migration
     public function down()
     {
         Schema::table('uploads', function (Blueprint $table) {
+            $table->dropIndex('uploadable_index');
+        });
+        Schema::table('uploads', function (Blueprint $table) {
             $table->dropColumn('uploadable_id');
             $table->dropColumn('uploadable_type');
-
-            $table->dropIndex('uploadable_index');
         });
     }
 }
