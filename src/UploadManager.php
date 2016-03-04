@@ -88,6 +88,8 @@ class UploadManager
             $newName = $this->strategy->makeFileName($file);
             $path = $this->strategy->makeStorePath($newName);
 
+            $upload->path = $path;
+
             if (is_callable($preCallback)) {
                 $upload = $preCallback($upload);
             }
@@ -100,11 +102,10 @@ class UploadManager
 
             UploadValidator::validate($content, $this->validatorGroups);
 
-            $upload->path = $path;
             $upload->size = strlen($content);
 
             $disk = \Storage::disk($upload->disk);
-            if ($disk->put($path, $content) == false) {
+            if ($disk->put($upload->path, $content) == false) {
                 return false;
             }
 
