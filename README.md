@@ -135,6 +135,56 @@ Upload, validate, storage, manage by API for Laravel 5.1/5.2
         }
     ```
     
+6. 存到别的Disk里面 
+    
+    ```php
+    
+        use zgldh\UploadManager\UploadManager;
+        
+        class UploadController extend Controller
+        {
+            public function postUpload(Request $request)
+            {
+                $file = $request->file('avatar');
+                $manager = UploadManager::getInstance();
+                $upload = $manager
+                    ->withValidator('image')
+                    ->withDisk('qiniu')         // 储存到七牛磁盘里
+                    ->upload($file);
+                $upload->save();
+                return $upload;
+            }
+        }
+    ```
+    
+7. 上传前修改``` $upload ``` 对象
+    
+    ```php
+    
+        use zgldh\UploadManager\UploadManager;
+        
+        class UploadController extend Controller
+        {
+            public function postUpload(Request $request)
+            {
+                $file = $request->file('avatar');
+                $manager = UploadManager::getInstance();
+                $upload = $manager
+                    ->withValidator('image')
+                    ->withDisk('localhost')         // 默认存到本地
+                    ->upload($file, function($upload){
+                        if($upload->size > 1024*1024)
+                        {
+                            $upload->disk = 'qiniu';// 超过1兆的文件都放到七牛里。
+                        }
+                        return $upload;
+                    });
+                $upload->save();
+                return $upload;
+            }
+        }
+    ```
+    
 ## 配置 Configuration
 
 1. ``` config/upload.php ```

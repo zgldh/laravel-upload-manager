@@ -17,6 +17,11 @@ class UploadManager
     private $strategy = null;
 
     /**
+     * @var null The name of default disk
+     */
+    private $diskName = null;
+
+    /**
      * @var array zgldh\UploadManager\Validators\Base
      */
     private $validatorGroups = null;
@@ -26,6 +31,7 @@ class UploadManager
     public function __construct()
     {
         $this->strategy = self::getStrategy();
+        $this->withDisk();
     }
 
     /**
@@ -61,6 +67,24 @@ class UploadManager
     }
 
     /**
+     * 设置默认disk名字
+     * @param $diskName config/filesystems.php disks数组内的key
+     * @return $this
+     * @throws \Exception
+     */
+    public function withDisk($diskName = null)
+    {
+        if ($diskName == null) {
+            $this->diskName = \Config::get('upload.base_storage_disk');
+        } elseif (\Config::has('filesystems.disks.' . $diskName)) {
+            $this->diskName = $diskName;
+        } else {
+            throw new BadDiskException("Bad disk name: " . $diskName);
+        }
+        return $this;
+    }
+
+    /**
      * 设置验证机制， 要在upload、update之前调用
      * @param $validatorGroups 验证组的名字
      * @return $this
@@ -88,27 +112,26 @@ class UploadManager
             $newName = $this->strategy->makeFileName($file);
             $path = $this->strategy->makeStorePath($newName);
 
+
+            $content = file_get_contents($uploadedFilePath);
+            UploadValidator::validate($content, $this->validatorGroups);
+
             $upload->path = $path;
+            $upload->disk = $this->diskName;
+            $upload->size = strlen($content);
 
             if (is_callable($preCallback)) {
                 $upload = $preCallback($upload);
             }
-
             if (!$upload) {
+                unset($content);
                 return false;
             }
-
-            $content = file_get_contents($uploadedFilePath);
-
-            UploadValidator::validate($content, $this->validatorGroups);
-
-            $upload->size = strlen($content);
 
             $disk = \Storage::disk($upload->disk);
             if ($disk->put($upload->path, $content) == false) {
                 return false;
             }
-
         } catch (UploadException $e) {
             $this->storeErrors($e);
             return false;
@@ -136,7 +159,7 @@ class UploadManager
         }
 
         $upload = $this->newUploadModel();
-        $upload->disk = \Config::get('upload.base_storage_disk');
+        $upload->disk = $this->diskName;
 
         $uploadedFilePath = $file->getPathname();
         $upload = $this->coreUpload($upload, $uploadedFilePath, $file, $preCallback);
@@ -153,7 +176,7 @@ class UploadManager
     public function uploadByUrl($url, $preCallback = null)
     {
         $upload = $this->newUploadModel();
-        $upload->disk = \Config::get('upload.base_storage_disk');
+        $upload->disk = $this->diskName;
 
         $uploadedFilePath = $url;
         $upload = $this->coreUpload($upload, $uploadedFilePath, $url, $preCallback);
