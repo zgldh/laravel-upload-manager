@@ -1,10 +1,10 @@
 # laravel-upload-manager
 通过API对文件进行“上传、验证、储存、管理”操作。
-Upload, validate, storage, manage by API for Laravel 5.1/5.2
+Upload, validate, storage, manage by API for Laravel 5.x
 
 ## 依赖 Requirement
 
-1. Laravel 5.1/5.2
+1. Laravel >= 5.1
 
 ## 安装 Install
 
@@ -184,7 +184,24 @@ Upload, validate, storage, manage by API for Laravel 5.1/5.2
             }
         }
     ```
-    
+
+8. 删除某用户上传后，却一直没有使用的`avatar`类型的``` $upload ``` 对象
+
+    ```php
+
+        use zgldh\UploadManager\UploadManager;
+
+        class UploadController extend Controller
+        {
+            public function clearUnUsed(Request $request)
+            {
+                $currentUser = $request->user();
+                $manager = UploadManager::getInstance();
+                $manager->removeUnUsedUploads($currentUser, 'avatar');
+            }
+        }
+    ```
+
 ## 配置 Configuration
 
 1. ``` config/upload.php ```
