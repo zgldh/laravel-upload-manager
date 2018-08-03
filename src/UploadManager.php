@@ -28,6 +28,10 @@ class UploadManager
 
     private $errors = null;
 
+    /**
+     * UploadManager constructor.
+     * @throws \Exception
+     */
     public function __construct()
     {
         $this->strategy = self::getStrategy();
@@ -111,7 +115,6 @@ class UploadManager
         try {
             $newName = $this->strategy->makeFileName($file);
             $path = $this->strategy->makeStorePath($newName);
-
 
             $content = file_get_contents($uploadedFilePath);
             UploadValidator::validate($content, $this->validatorGroups);
@@ -277,4 +280,27 @@ class UploadManager
         }
     }
 
+    /**
+     * 删除未使用的上传对象。
+     * @param int $userId  上传者ID
+     * @param string $type 上传类型
+     */
+    public function removeUnUsedUploads($userId = null, $type = null)
+    {
+        $unusedLifetime = config('upload.unused_lifetime', -1);
+        if ($unusedLifetime === -1) {
+            return;
+        }
+        $upload = $this->newUploadModel();
+        $upload = $upload->unUsed();
+        $expiredTime = date('Y-m-d H:i:s', time() - $unusedLifetime);
+        $upload = $upload->where('created_at', '<', $expiredTime);
+        if ($userId) {
+            $upload = $upload->where('user_id', $userId);
+        }
+        if ($type) {
+            $upload = $upload->where('type', $type);
+        }
+        return $upload->delete();
+    }
 }

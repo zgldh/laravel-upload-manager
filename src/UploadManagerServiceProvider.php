@@ -36,7 +36,6 @@ class UploadManagerServiceProvider extends ServiceProvider
             __DIR__ . '/../model/Upload.php'     => app_path('Upload.php')
         ]);
 
-        
         $modelClassName = config('upload.upload_model');
         if (class_exists($modelClassName)) {
             $modelClassName::deleted(

@@ -21,10 +21,20 @@ class Upload extends Model
     {
         return $this->belongsTo('App\User', 'user_id', 'id');
     }
-    
+
     public function uploadable()
     {
         return $this->morphTo();
+    }
+
+    public function scopeUsed($query)
+    {
+        return $query->has('uploadable');
+    }
+
+    public function scopeUnUsed($query)
+    {
+        return $query->whereNull('uploadable_id')->whereNull('uploadable_type');
     }
 
     public function getUrlAttribute()
@@ -41,8 +51,7 @@ class Upload extends Model
             if ($disk->exists($this->path)) {
                 $disk->delete($this->path);
                 $this->path = '';
-                if($autoSave)
-                {
+                if ($autoSave) {
                     $this->save();
                 }
             }
