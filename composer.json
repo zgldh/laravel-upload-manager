@@ -1,7 +1,7 @@
 {
   "name": "zgldh/laravel-upload-manager",
   "license": "MIT",
-  "description": "Upload, validate, storage, manage by API for Laravel 5.1/5.2",
+  "description": "Upload, validate, storage, manage by API for Laravel 5.1/5.2, Laravel 6.0",
   "keywords": [
     "laravel",
     "upload",
@@ -17,7 +17,7 @@
     }
   ],
   "require": {
-    "laravel/framework": "^5.1"
+    "laravel/framework": "^6.0"
   },
   "autoload": {
     "psr-4": {
