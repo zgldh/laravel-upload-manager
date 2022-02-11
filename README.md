@@ -1,10 +1,12 @@
 # laravel-upload-manager
 通过API对文件进行“上传、验证、储存、管理”操作。
-Upload, validate, storage, manage by API for Laravel 5.x/6.x
+Upload, validate, storage, manage by API for Laravel 5/6/7/8/9
 
 ## 依赖 Requirement
 
-1. Laravel >= 5.1
+1. Laravel >= 6.0
+
+2. For Laravel 5, Please use `composer require zgldh/laravel-upload-manager 0.6`
 
 ## 安装 Install
 
